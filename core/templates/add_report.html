@@ -1,9 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Medical Report - Healthcare System</title>
+    <title>Upload Medical Report - VitalSync</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -124,7 +125,7 @@
     <div class="form-container">
         <div class="form-card">
             <div class="form-header">
-                <i class="fa-solid fa-file-medical form-icon"></i>
+                <img src="{% static 'images/logo.png' %}" alt="VitalSync Logo" style="height: 70px; margin-bottom: 1rem; object-fit: contain;">
                 <h2 class="form-title">Upload Medical Report</h2>
                 <p style="color: var(--text-muted); font-size: 0.95rem;">Attach a PDF or image of your lab results. Our AI will automatically analyze PDFs.</p>
             </div>

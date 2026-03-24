@@ -1,10 +1,11 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Healthcare Dashboard</title>
+    <title>VitalSync Dashboard</title>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Fonts -->
@@ -406,7 +407,7 @@
     <!-- Navbar -->
     <nav class="navbar">
         <a href="/" class="navbar-brand">
-            <i class="fa-solid fa-notes-medical"></i> HealthCare
+            <img src="{% static 'images/logo.png' %}" alt="VitalSync" style="height: 48px; width: auto;">
         </a>
 
         {% if user.is_authenticated %}
@@ -753,7 +754,7 @@
         <div class="guest-center">
             <div class="guest-card">
                 <i class="fa-solid fa-shield-heart" style="font-size: 4rem; color: var(--primary); margin-bottom: 1.5rem;"></i>
-                <h2>Welcome to HealthCare</h2>
+                <h2>Welcome to VitalSync</h2>
                 <p>Please log in or register to manage your loved ones\' healthcare data, appointments, and medicine schedules.</p>
 
                 <div class="guest-actions">
