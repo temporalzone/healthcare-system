@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Medical Report - Healthcare System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .form-container { width: 100%; max-width: 550px; }
+
+        .form-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 3rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border: 1px solid var(--border);
+        }
+
+        .form-header { text-align: center; margin-bottom: 2rem; }
+        .form-icon { font-size: 3.5rem; color: var(--primary); margin-bottom: 1rem; }
+        .form-title { font-size: 1.7rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem; }
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; font-size: 0.95rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.5rem; }
+        
+        .form-control, select, textarea, input[type="text"], input[type="date"] {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background-color: #fafbfc;
+            outline: none;
+            font-size: 1rem;
+            transition: all 0.2s;
+            color: var(--text-main);
+        }
+        
+        textarea { resize: vertical; min-height: 100px; }
+        
+        .form-control:focus, select:focus, textarea:focus, input[type="text"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+            background-color: #fff;
+        }
+
+        .file-upload-wrapper {
+            position: relative;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            background-color: #f8fafc;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .file-upload-wrapper:hover { border-color: var(--primary); background-color: #eef2ff; }
+        
+        .file-upload-wrapper input[type="file"] {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%; height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 1rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+
+        .btn-submit:hover { background-color: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 6px 8px -1px rgba(79, 70, 229, 0.3); }
+
+        .form-footer { text-align: center; margin-top: 2rem; }
+        .form-footer a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .form-footer a:hover { color: var(--text-main); }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-card">
+            <div class="form-header">
+                <i class="fa-solid fa-file-medical form-icon"></i>
+                <h2 class="form-title">Upload Medical Report</h2>
+                <p style="color: var(--text-muted); font-size: 0.95rem;">Attach a PDF or image of your lab results. Our AI will automatically analyze PDFs.</p>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Patient (Parent)</label>
+                    {{ form.parent }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Report Name (e.g. Blood Test)</label>
+                    {{ form.name }}
+                </div>
+
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" name="date" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Upload File (PDF highly recommended)</label>
+                    <div class="file-upload-wrapper">
+                        <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 0.5rem;"></i>
+                        <p style="margin: 0; font-weight: 600; color: #334155;">Drag & drop or Click to browse</p>
+                        <p style="margin: 0; font-size: 0.8rem; color: #94a3b8; margin-top: 0.3rem;">Supports .pdf, .jpg, .png</p>
+                        {{ form.file }}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Clinical Notes (Optional)</label>
+                    {{ form.notes }}
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <i class="fa-solid fa-microchip"></i> Save & Analyze Report
+                </button>
+            </form>
+
+            <div class="form-footer">
+                <a href="/"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
