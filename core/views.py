@@ -12,7 +12,7 @@ from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render, redirect
-from django.core.mail import send_mail
+from django.core.mail import get_connection, send_mail
 from django.utils import timezone
 
 from .forms import (
@@ -66,12 +66,14 @@ def _send_registration_otp(user):
         },
     )
 
+    connection = get_connection(timeout=getattr(settings, 'EMAIL_TIMEOUT', 10))
     send_mail(
         'Verify your CareBridge account',
         f'Your OTP is {otp_code}. It will expire in 10 minutes.',
         settings.EMAIL_HOST_USER,
         [user.email],
         fail_silently=False,
+        connection=connection,
     )
 
 
