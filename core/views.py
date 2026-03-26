@@ -373,6 +373,8 @@ def home(request):
     vitals_sugar = []
 
     is_patient_dashboard = False
+    is_sunday_vitals_reminder = False
+    unlogged_parents_str = ""
 
     if request.user.is_authenticated:
         is_patient_dashboard = hasattr(request.user, 'parent_profile')
@@ -422,8 +424,6 @@ def home(request):
                 vitals_bp_dia.append(round(sum(w['bp_dia'])/len(w['bp_dia'])) if w['bp_dia'] else None)
                 vitals_sugar.append(round(sum(w['sugar'])/len(w['sugar'])) if w['sugar'] else None)
 
-        is_sunday_vitals_reminder = False
-        unlogged_parents_str = ""
         if today.weekday() == 6: # Sunday
             unlogged = []
             for p in parents:
