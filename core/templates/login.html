@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - VitalSync</title>
+    <title>Login - CareBridge</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -179,6 +181,9 @@
             <form method="POST">
                 {% csrf_token %}
                 {{ form.as_p }}
+                <div style="text-align: right; margin-top: -0.5rem; margin-bottom: 0.75rem;">
+                    <a href="/password-reset/" style="font-size: 0.85rem; color: var(--primary); text-decoration: none;">Forgot password?</a>
+                </div>
                 <button type="submit" class="btn-submit">
                     Login <i class="fa-solid fa-arrow-right-to-bracket"></i>
                 </button>

@@ -3,9 +3,11 @@
 <html lang="en">
 
 <head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VitalSync Dashboard</title>
+    <title>CareBridge Dashboard</title>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Fonts -->
@@ -407,12 +409,18 @@
     <!-- Navbar -->
     <nav class="navbar">
         <a href="/" class="navbar-brand">
-            <img src="{% static 'images/logo.png' %}" alt="VitalSync" style="height: 48px; width: auto;">
+            <img src="{% static 'images/carebridge-logo.svg' %}" alt="CareBridge" style="height: 48px; width: auto;">
         </a>
 
         {% if user.is_authenticated %}
         <div class="user-nav">
             <span><i class="fa-regular fa-user-circle"></i> {{ user.username }}</span>
+            <form method="POST" action="/delete-account/" style="margin: 0;">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn" style="color: var(--danger);" onclick="return confirm('WARNING: Are you sure you want to permanently delete your user account? This cannot be undone and you will lose access to all your connected data.');">
+                    <i class="fa-solid fa-user-xmark"></i> Delete Account
+                </button>
+            </form>
             <a href="/logout/" class="logout-btn">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
             </a>
@@ -424,32 +432,71 @@
 
         {% if user.is_authenticated %}
 
+        {% if messages %}
+            {% for message in messages %}
+                <div style="padding: 1rem; margin-bottom: 1.5rem; border-radius: 8px; font-weight: 500;
+                     {% if message.tags == 'error' %}background-color: #fee2e2; color: #991b1b; border: 1px solid #f87171;
+                     {% else %}background-color: #d1fae5; color: #065f46; border: 1px solid #34d399;{% endif %}"
+                     class="message-alert">
+                    <i class="fa-solid fa-circle-exclamation" style="margin-right: 8px;"></i> {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if is_sunday_vitals_reminder %}
+        <div class="message-alert" style="background-color: #fef08a; color: #854d0e; border: 1px solid #fde047; padding: 1rem; margin-bottom: 1.5rem; border-radius: 8px; font-weight: 600; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <i class="fa-solid fa-bell fa-shake" style="margin-right: 8px; color: #ca8a04;"></i>
+                <strong>Sunday Reminder:</strong> It's time to log the weekly vitals for {{ unlogged_parents_str }}!
+            </div>
+            <a href="/add-vital/" class="btn btn-sm" style="background-color: #ca8a04; color: white; padding: 0.4rem 0.8rem; border-radius: 6px; text-decoration: none; font-size: 0.9rem;">
+                <i class="fa-solid fa-heart-pulse"></i> Log Now
+            </a>
+        </div>
+        {% endif %}
+
         <!-- Top Actions -->
         <div class="action-bar">
+            {% if not is_patient_dashboard %}
             <a href="/add-parent/" class="btn btn-primary">
                 <i class="fa-solid fa-user-plus"></i> Add Parent
             </a>
+            {% endif %}
 
             <a href="/add-medicine/" class="btn btn-primary">
                 <i class="fa-solid fa-pills"></i> Add Medicine
+            </a>
+
+            <a href="/add-vital/" class="btn btn-primary" style="background-color: #ef4444; border-color: #ef4444;">
+                <i class="fa-solid fa-heart-pulse"></i> Log Vitals
             </a>
 
             <a href="/add-appointment/" class="btn btn-primary">
                 <i class="fa-solid fa-calendar-check"></i> Book Appointment
             </a>
 
-            <a href="/add-report/" class="btn btn-outline" style="border-color: var(--primary); color: var(--primary);">
-                <i class="fa-solid fa-file-medical"></i> Upload Report
+            <a href="/add-report/" class="btn btn-primary">
+                <i class="fa-solid fa-file-medical"></i> Add Medical Report
             </a>
-            
-            <a href="/emergency/" class="btn btn-danger" style="margin-left: auto;">
-                <i class="fa-solid fa-truck-medical"></i> Emergency
+
+            <a href="/edit-profile/" class="btn btn-outline" style="border-color: var(--text-main); color: var(--text-main);">
+                <i class="fa-solid fa-user-gear"></i> Edit Profile
             </a>
+
+            {% if is_patient_dashboard and parents %}
+            <a href="/edit-parent/{{ parents.0.id }}/" class="btn btn-outline" style="border-color: var(--text-main); color: var(--text-main);">
+                <i class="fa-solid fa-user-pen"></i> Edit Patient Profile
+            </a>
+            <button onclick="triggerSOS({{ parents.0.id }}, '{{ parents.0.name|escapejs }}')" class="btn btn-danger" style="margin-left: auto; padding: 0.75rem 2rem; font-size: 1.1rem; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3);">
+                <i class="fa-solid fa-truck-medical fa-beat-fade"></i> EMERGENCY SOS
+            </button>
+            {% endif %}
         </div>
 
         <div class="dashboard-grid">
 
             <!-- Parents Section -->
+            {% if not is_patient_dashboard %}
             <div class="dashboard-section">
                 <div class="section-header">
                     <h2 class="section-title"><i class="fa-solid fa-users"></i> Parents Overview</h2>
@@ -474,28 +521,69 @@
                             </div>
                         </div>
 
-                        <div class="item-actions">
-                            <a href="/edit-parent/{{ parent.id }}/" class="btn btn-warning btn-sm">
+                        {% if parent.latest_vitals %}
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.85rem;">
+                            <div style="color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 600;">Latest Vitals ({{ parent.latest_vitals.date }})</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                                {% if parent.latest_vitals.bp_sys %}
+                                <div><i class="fa-solid fa-droplet" style="color:#ef4444;"></i> BP: {{ parent.latest_vitals.bp_sys }}/{{ parent.latest_vitals.bp_dia }}</div>
+                                {% endif %}
+                                {% if parent.latest_vitals.sugar %}
+                                <div><i class="fa-solid fa-cubes-stacked" style="color:#f59e0b;"></i> Sugar: {{ parent.latest_vitals.sugar }}</div>
+                                {% endif %}
+                                {% if parent.latest_vitals.pulse %}
+                                <div><i class="fa-solid fa-heart-pulse" style="color:#ec4899;"></i> Pulse: {{ parent.latest_vitals.pulse }}</div>
+                                {% endif %}
+                                {% if parent.latest_vitals.spo2 %}
+                                <div><i class="fa-solid fa-lungs" style="color:#0ea5e9;"></i> SpO2: {{ parent.latest_vitals.spo2 }}%</div>
+                                {% endif %}
+                                {% if parent.latest_vitals.weight %}
+                                <div><i class="fa-solid fa-weight-scale" style="color:#8b5cf6;"></i> Wt: {{ parent.latest_vitals.weight }} kg</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="item-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                            <button onclick="triggerSOS({{ parent.id }}, '{{ parent.name|escapejs }}')" class="btn btn-danger btn-sm" style="background-color: #dc2626; border-color: #dc2626; font-weight: bold;">
+                                <i class="fa-solid fa-truck-medical fa-beat-fade"></i> SOS Alert
+                            </button>
+                            
+                            {% if not parent.patient_account %}
+                            <div style="margin-left: auto; background-color: #fef2f2; border: 1px dashed #ef4444; padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.85rem; font-weight: 700; color: #ef4444; display: flex; align-items: center; gap: 0.4rem;" title="Share this code with your parent to link them during registration">
+                                <i class="fa-solid fa-ticket"></i> Code: {{ parent.invite_code }}
+                            </div>
+                            {% else %}
+                            <span class="badge badge-success" style="margin-left: auto;" title="This parent has registered and linked their account"><i class="fa-solid fa-link"></i> Linked</span>
+                            {% endif %}
+                            
+                            <a href="/edit-parent/{{ parent.id }}/" class="btn btn-warning btn-sm" style="margin-left: 0.5rem;">
                                 <i class="fa-solid fa-pen"></i> Edit
                             </a>
-                            <a href="/delete-parent/{{ parent.id }}/" class="btn btn-danger btn-sm">
+                            <a href="/delete-parent/{{ parent.id }}/" class="btn btn-outline btn-sm" style="color: var(--danger); border: 1px solid var(--danger);">
                                 <i class="fa-solid fa-trash"></i>
                             </a>
                         </div>
                     </div>
                     {% empty %}
-                    <div class="empty-state">
-                        <i class="fa-regular fa-folder-open"></i>
-                        <p>No parents added yet.</p>
                     </div>
                     {% endfor %}
                 </div>
             </div>
+            {% endif %}
 
             <!-- Medicines Status -->
             <div class="dashboard-section">
-                <div class="section-header">
+                <div class="section-header" style="flex-wrap: wrap; gap: 1rem;">
                     <h2 class="section-title"><i class="fa-solid fa-prescription-bottle-medical"></i> Medicine Schedule</h2>
+                    <form method="GET" style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="date" name="date" value="{{ selected_date_str }}" 
+                               onchange="this.form.submit()" 
+                               style="padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid var(--border); font-size: 0.85rem; color: var(--text-main); background: var(--bg);">
+                        {% if selected_date_str != today_str %}
+                        <a href="/" class="btn btn-sm" style="border: 1px solid var(--primary); color: var(--primary); text-decoration: none; padding: 0.4rem 0.6rem; background: transparent;">Today</a>
+                        {% endif %}
+                    </form>
                 </div>
 
                 <div class="items-list">
@@ -503,7 +591,7 @@
                     <div class="item-card">
                         <div class="item-header">
                             <h3 class="item-title"><i class="fa-solid fa-pills" style="font-size: 0.9em;"></i> {{ med.name }}</h3>
-                            {% if med.taken %}
+                            {% if med.today_log.taken %}
                             <span class="badge badge-success"><i class="fa-solid fa-check"></i> Taken</span>
                             {% else %}
                             <span class="badge badge-danger"><i class="fa-solid fa-clock"></i> Pending</span>
@@ -521,13 +609,16 @@
                             </div>
                         </div>
 
-                        {% if not med.taken %}
-                        <div class="item-actions">
-                            <a href="/mark-taken/{{ med.id }}/" class="btn btn-success btn-sm">
+                        <div class="item-actions" style="justify-content: flex-end;">
+                            {% if not med.today_log.taken %}
+                            <a href="/mark-taken/{{ med.today_log.id }}/" class="btn btn-success btn-sm">
                                 <i class="fa-solid fa-check-double"></i> Mark Taken
                             </a>
+                            {% endif %}
+                            <a href="/delete-medicine/{{ med.id }}/" class="btn btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger); margin-left: 0.5rem;" onclick="return confirm('Delete this medicine and all its history?')">
+                                <i class="fa-solid fa-trash"></i> Delete
+                            </a>
                         </div>
-                        {% endif %}
                     </div>
                     {% empty %}
                     <div class="empty-state">
@@ -659,11 +750,12 @@
                         </div>
                     </div>
 
-                    <!-- Appointments -->
-                    <div style="background: var(--bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border);">
-                        <h3 class="item-title" style="margin-bottom: 1rem; justify-content: center; font-size: 0.95rem;">Appointments per Parent</h3>
-                        <div class="chart-container" style="height: 250px;">
-                            <canvas id="appointmentsChart"></canvas>
+
+                    <!-- Vitals Trend -->
+                    <div style="background: var(--bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); grid-column: 1 / -1;">
+                        <h3 class="item-title" style="margin-bottom: 1rem; justify-content: center; font-size: 0.95rem;">Vitals Trajectory {% if parents %}({{ parents.0.name }}){% endif %}</h3>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="vitalsChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -726,26 +818,106 @@
                     });
                 }
 
-                // 3. Appointments per Parent Chart
-                const ctxApp = document.getElementById('appointmentsChart');
-                if (ctxApp) {
-                    new Chart(ctxApp, {
-                        type: 'bar',
+
+                // 4. Vitals Trend Chart
+                const vitalsCtx = document.getElementById('vitalsChart');
+                if (vitalsCtx) {
+                    new Chart(vitalsCtx, {
+                        type: 'line',
                         data: {
-                            labels: {{ app_labels|safe }},
-                            datasets: [{
-                                label: 'Appointments',
-                                data: {{ app_counts|safe }},
-                                backgroundColor: 'rgba(14, 165, 233, 0.5)', // Secondary Blue
-                                borderColor: 'rgba(14, 165, 233, 1)',
-                                borderWidth: 1,
-                                borderRadius: 4,
-                            }]
+                            labels: {{ vitals_dates|safe }},
+                            datasets: [
+                                {
+                                    label: 'Systolic BP',
+                                    data: {{ vitals_bp_sys|safe }},
+                                    borderColor: '#ef4444',
+                                    backgroundColor: 'transparent',
+                                    tension: 0.4,
+                                    spanGaps: true
+                                },
+                                {
+                                    label: 'Diastolic BP',
+                                    data: {{ vitals_bp_dia|safe }},
+                                    borderColor: '#fca5a5',
+                                    backgroundColor: 'transparent',
+                                    borderDash: [5, 5],
+                                    tension: 0.4,
+                                    spanGaps: true
+                                },
+                                {
+                                    label: 'Blood Sugar',
+                                    data: {{ vitals_sugar|safe }},
+                                    borderColor: '#f59e0b',
+                                    backgroundColor: 'transparent',
+                                    tension: 0.4,
+                                    spanGaps: true
+                                }
+                            ]
                         },
-                        options: { ...commonOptions, scales: { y: { beginAtZero: true } } }
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { position: 'top' } },
+                            scales: {
+                                y: { beginAtZero: false }
+                            }
+                        }
                     });
                 }
             });
+
+            // Global SOS Trigger Function
+            window.triggerSOS = function(parentId, parentName) {
+                if (!confirm(`🚨 EMERGENCY SOS 🚨\n\nAre you sure you want to trigger a severe distress signal for ${parentName}? This will transmit their health context and your LIVE coordinates.`)) return;
+
+                const btn = event.currentTarget;
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Locating...';
+                btn.disabled = true;
+
+                if ("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        
+                        btn.innerHTML = '<i class="fa-solid fa-arrow-up-right-dots fa-fade"></i> Transmitting...';
+
+                        fetch(`/sos-alert/${parentId}/`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify({ latitude: lat, longitude: lng })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            btn.innerHTML = originalHtml;
+                            btn.disabled = false;
+                            if (data.status === 'success') {
+                                alert(`✅ SOS BROADCAST SUCCESSFUL!\n\nAn emergency dossier containing ${parentName}'s health profile, latest vitals, today's medicines, and your real-time GPS coordinates has been immediately dispatched!`);
+                            } else {
+                                alert("Failed to send signal: " + data.message);
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            btn.innerHTML = originalHtml;
+                            btn.disabled = false;
+                            alert("Network error. Could not reach dispatch servers.");
+                        });
+
+                    }, function(error) {
+                        btn.innerHTML = originalHtml;
+                        btn.disabled = false;
+                        alert("Geolocation Access Denied! Your browser blocked location access. The SOS coordinate lock failed.");
+                    });
+                } else {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                    alert("Geolocation is not supported by your browser.");
+                }
+            };
         </script>
 
         {% else %}
@@ -754,7 +926,7 @@
         <div class="guest-center">
             <div class="guest-card">
                 <i class="fa-solid fa-shield-heart" style="font-size: 4rem; color: var(--primary); margin-bottom: 1.5rem;"></i>
-                <h2>Welcome to VitalSync</h2>
+                <h2>Welcome to CareBridge</h2>
                 <p>Please log in or register to manage your loved ones\' healthcare data, appointments, and medicine schedules.</p>
 
                 <div class="guest-actions">

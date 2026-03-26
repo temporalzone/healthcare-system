@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - VitalSync</title>
+    <title>Register - CareBridge</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -191,11 +193,58 @@
 
             <form method="POST">
                 {% csrf_token %}
+                
+                {% if messages %}
+                <div class="messages" style="margin-bottom:1rem;">
+                    {% for message in messages %}
+                    <div style="padding:0.75rem; border-radius:6px; background-color:{% if message.tags == 'error' %}#fee2e2; color:#b91c1c;{% else %}#d1fae5; color:#047857;{% endif %}; margin-bottom:0.5rem; font-size:0.9rem;">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div style="margin-bottom: 1.25rem;">
+                    <label style="display:block; margin-bottom:0.75rem; font-weight:600;">I am registering as a:</label>
+                    <div style="display:flex; gap:1.5rem; padding: 0.5rem; background: #f1f5f9; border-radius: 8px;">
+                        <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:500;">
+                            <input type="radio" name="role" value="caregiver" checked onchange="toggleInviteCode()"> Caregiver
+                        </label>
+                        <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:500;">
+                            <input type="radio" name="role" value="patient" onchange="toggleInviteCode()"> Patient
+                        </label>
+                    </div>
+                </div>
+
+                <div id="inviteCodeContainer" style="display:none; margin-bottom: 1.25rem;">
+                    <label for="invite_code" style="display:block; margin-bottom:0.5rem; font-weight:600;">6-Digit Invite Code:</label>
+                    <input type="text" name="invite_code" id="invite_code" placeholder="e.g. A7X9K2" maxlength="10" style="text-transform: uppercase;">
+                    <div class="helptext" style="margin-top:0.4rem; color:var(--text-muted); font-size:0.8rem;">Ask your Caregiver for this code to link your account.</div>
+                </div>
+
                 {{ form.as_p }}
+                
                 <button type="submit" class="btn-submit">
                     Register <i class="fa-solid fa-paper-plane"></i>
                 </button>
             </form>
+
+            <script>
+                function toggleInviteCode() {
+                    const role = document.querySelector('input[name="role"]:checked').value;
+                    const container = document.getElementById('inviteCodeContainer');
+                    const input = document.getElementById('invite_code');
+                    
+                    if (role === 'patient') {
+                        container.style.display = 'block';
+                        input.required = true;
+                    } else {
+                        container.style.display = 'none';
+                        input.required = false;
+                        input.value = '';
+                    }
+                }
+            </script>
 
             <div class="auth-footer">
                 Already have an account? <a href="/login/">Login here</a>

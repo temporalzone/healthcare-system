@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="{% static 'css/animations.css' %}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Parent - CareBridge</title>
+    <title>Add Vitals - CareBridge</title>
     <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -44,7 +44,7 @@
 
         .form-header { text-align: center; margin-bottom: 2rem; }
         
-        .form-icon { font-size: 3rem; color: var(--primary); margin-bottom: 1rem; }
+        .form-icon { font-size: 3rem; color: #ef4444; margin-bottom: 1rem; }
 
         .form-title { font-size: 1.5rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem; }
 
@@ -109,16 +109,16 @@
     <div class="form-container">
         <div class="form-card">
             <div class="form-header">
-                <i class="fa-solid fa-user-plus form-icon"></i>
-                <h2 class="form-title">Add Parent</h2>
-                <p style="color: var(--text-muted); font-size: 0.95rem;">Enter the parent's details below.</p>
+                <i class="fa-solid fa-heart-pulse form-icon"></i>
+                <h2 class="form-title">Log Vitals</h2>
+                <p style="color: var(--text-muted); font-size: 0.95rem;">Record latest BP, Sugar, Pulse, or Weight.</p>
             </div>
 
             <form method="POST">
                 {% csrf_token %}
                 {{ form.as_p }}
                 <button type="submit" class="btn-submit">
-                    <i class="fa-solid fa-save"></i> Save Parent
+                    <i class="fa-solid fa-save"></i> Save Vitals
                 </button>
             </form>
 
