@@ -3,6 +3,7 @@ import json
 import datetime
 import random
 import string
+import threading
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
@@ -52,6 +53,17 @@ def _generate_otp():
     return ''.join(random.choice(string.digits) for _ in range(6))
 
 
+def _send_otp_email_async(recipient_email, otp_code):
+    # Do not block user-facing requests on SMTP latency.
+    send_mail(
+        'Verify your CareBridge account',
+        f'Your OTP is {otp_code}. It will expire in 10 minutes.',
+        settings.EMAIL_HOST_USER,
+        [recipient_email],
+        fail_silently=True,
+    )
+
+
 def _send_registration_otp(user):
     otp_code = _generate_otp()
     EmailOTP.objects.update_or_create(
@@ -66,13 +78,11 @@ def _send_registration_otp(user):
         },
     )
 
-    send_mail(
-        'Verify your CareBridge account',
-        f'Your OTP is {otp_code}. It will expire in 10 minutes.',
-        settings.EMAIL_HOST_USER,
-        [user.email],
-        fail_silently=False,
-    )
+    threading.Thread(
+        target=_send_otp_email_async,
+        args=(user.email, otp_code),
+        daemon=True,
+    ).start()
 
 
 def _cleanup_stale_unverified_users(username, email):
