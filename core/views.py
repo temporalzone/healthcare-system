@@ -3,7 +3,6 @@ import json
 import datetime
 import random
 import string
-import threading
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
@@ -53,21 +52,6 @@ def _generate_otp():
     return ''.join(random.choice(string.digits) for _ in range(6))
 
 
-def _send_otp_email_async(recipient_email, otp_code):
-    # Do not block user-facing requests on SMTP latency.
-    try:
-        send_mail(
-            'Verify your CareBridge account',
-            f'Your OTP is {otp_code}. It will expire in 10 minutes.',
-            settings.EMAIL_HOST_USER,
-            [recipient_email],
-            fail_silently=False,
-        )
-    except Exception as exc:
-        # Visible in Render logs for SMTP troubleshooting.
-        print(f"OTP email send failed for {recipient_email}: {exc}")
-
-
 def _send_registration_otp(user):
     otp_code = _generate_otp()
     EmailOTP.objects.update_or_create(
@@ -82,13 +66,13 @@ def _send_registration_otp(user):
         },
     )
 
-    threading.Thread(
-        target=_send_otp_email_async,
-        args=(user.email, otp_code),
-        daemon=True,
-    ).start()
-
-    return otp_code
+    send_mail(
+        'Verify your CareBridge account',
+        f'Your OTP is {otp_code}. It will expire in 10 minutes.',
+        settings.EMAIL_HOST_USER,
+        [user.email],
+        fail_silently=False,
+    )
 
 
 def _cleanup_stale_unverified_users(username, email):
@@ -237,17 +221,18 @@ def register(request):
             request.session['pending_invite_code'] = invite_code
 
             try:
-                otp_code = _send_registration_otp(user)
+                _send_registration_otp(user)
                 _log_audit(request, 'otp_sent', 'User', user.id, 'Registration OTP sent')
-            except Exception:
+            except Exception as exc:
                 user.delete()
                 request.session.pop('pending_user_id', None)
                 request.session.pop('pending_role', None)
                 request.session.pop('pending_invite_code', None)
-                messages.error(request, 'Could not send OTP to this email. Please check the email address and try again.')
+                print(f"OTP send failed during register for {posted_email}: {exc}")
+                messages.error(request, 'Could not send OTP email. Please verify your email configuration and try again.')
                 return render(request, 'register.html', {'form': form})
 
-            messages.success(request, f"We sent an OTP to {user.email}. Enter it to verify your account. Temporary OTP: {otp_code}")
+            messages.success(request, f"We sent an OTP to {user.email}. Enter it to verify your account.")
             return redirect('verify_email')
     else:
         form = RegisterForm()
@@ -279,10 +264,15 @@ def verify_email(request):
                 wait_seconds = int((otp_record.resend_available_at - now).total_seconds())
                 messages.error(request, f'Please wait {wait_seconds} second(s) before requesting a new OTP.')
                 return redirect('verify_email')
-            otp_code = _send_registration_otp(user)
-            _log_audit(request, 'otp_resent', 'User', user.id, 'Registration OTP resent')
-            messages.success(request, f'A new OTP was sent to {user.email}. Temporary OTP: {otp_code}')
-            return redirect('verify_email')
+            try:
+                _send_registration_otp(user)
+                _log_audit(request, 'otp_resent', 'User', user.id, 'Registration OTP resent')
+                messages.success(request, f'A new OTP was sent to {user.email}.')
+                return redirect('verify_email')
+            except Exception as exc:
+                print(f"OTP resend failed for {user.email}: {exc}")
+                messages.error(request, 'Could not resend OTP email right now. Please try again shortly.')
+                return redirect('verify_email')
 
         if form.is_valid():
             entered_otp = form.cleaned_data['otp'].strip()
