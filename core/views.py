@@ -325,7 +325,7 @@ def verify_email(request):
                 request.session.pop('pending_role', None)
                 request.session.pop('pending_invite_code', None)
 
-                messages.success(request, 'Email verified successfully. Please log in.')
+                messages.success(request, 'Email verified successfully. Please log in.', extra_tags='email_verified')
                 return redirect('login')
 
     return render(request, 'verify_email.html', {
