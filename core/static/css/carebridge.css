@@ -98,10 +98,13 @@ img { max-width: 100%; display: block; }
   box-shadow: 4px 0 24px rgba(14, 72, 128, 0.25);
 }
 
-/* Desktop: always visible */
+/* Desktop: always visible by default */
 @media (min-width: 900px) {
   .cb-sidebar {
-    transform: translateX(0) !important;
+    transform: translateX(0);
+  }
+  .cb-sidebar.collapsed {
+    transform: translateX(-100%);
   }
 }
 
@@ -137,11 +140,18 @@ img { max-width: 100%; display: block; }
   font-weight: 700;
   color: #fff;
   letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
 }
 
-/* Sidebar close btn (mobile only) */
+/* Sidebar close btn */
 .cb-sidebar-close {
-  display: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   color: var(--sidebar-muted);
@@ -151,15 +161,12 @@ img { max-width: 100%; display: block; }
   margin-left: auto;
   border-radius: 6px;
   transition: color var(--transition), background var(--transition);
+  flex-shrink: 0;
 }
 
 .cb-sidebar-close:hover {
   color: #fff;
   background: var(--sidebar-hover);
-}
-
-@media (max-width: 899px) {
-  .cb-sidebar-close { display: flex; align-items: center; justify-content: center; }
 }
 
 /* Sidebar user profile */
@@ -393,6 +400,9 @@ img { max-width: 100%; display: block; }
   .cb-main {
     margin-left: var(--sidebar-width);
   }
+  .cb-app.sidebar-collapsed .cb-main {
+    margin-left: 0;
+  }
 }
 
 @media (max-width: 899px) {
@@ -405,7 +415,15 @@ img { max-width: 100%; display: block; }
 
 /* ========== Page Header ========== */
 .cb-page-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
   margin-bottom: 1.8rem;
+}
+
+.cb-page-header-text {
+  min-width: 0;
+  flex: 1;
 }
 
 .cb-page-header h1 {
@@ -419,6 +437,44 @@ img { max-width: 100%; display: block; }
   font-size: 0.9rem;
   color: var(--text-muted);
   margin-top: 3px;
+}
+
+/* Desktop sidebar toggle button */
+.cb-desktop-toggle {
+  display: none;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 1.1rem;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  flex-shrink: 0;
+  margin-top: 3px;
+  box-shadow: var(--shadow-sm);
+}
+
+.cb-desktop-toggle:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+@media (min-width: 900px) {
+  .cb-desktop-toggle {
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* Patient emergency actions bar */
+.cb-patient-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.8rem;
 }
 
 /* ========== Messages / Toast Alerts ========== */
@@ -509,14 +565,6 @@ img { max-width: 100%; display: block; }
 @keyframes toastIn {
   from { opacity: 0; transform: translateY(-8px) scale(0.97); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* ========== Action Bar ========== */
-.cb-action-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 1.8rem;
 }
 
 /* ========== Buttons ========== */
@@ -1468,7 +1516,7 @@ ul.errorlist {
     grid-template-columns: 1fr;
   }
 
-  .cb-action-bar {
+  .cb-patient-actions {
     display: none; /* hidden on mobile, use FAB instead */
   }
 
@@ -1477,5 +1525,6 @@ ul.errorlist {
 }
 
 @media (max-width: 900px) {
-  .cb-page-header h1 { font-size: 1.35rem; }
+  .cb-page-header h1,
+  .cb-page-header-text h1 { font-size: 1.35rem; }
 }
