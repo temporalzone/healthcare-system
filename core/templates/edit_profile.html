@@ -1,102 +1,45 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    {% load static %}
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Profile - CareBridge</title>
-    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
-    <style>
-        :root {
-            --primary: #0284c7;
-            --primary-hover: #0369a1;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
-
-        body {
-            min-height: 100vh;
-            background: var(--bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-        }
-
-        .card {
-            width: 100%;
-            max-width: 560px;
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 2rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
-        }
-
-        h1 { font-size: 1.5rem; color: var(--text-main); margin-bottom: 0.4rem; }
-        p.sub { color: var(--text-muted); margin-bottom: 1.2rem; }
-
-        form p { margin-bottom: 1rem; display: flex; flex-direction: column; }
-        label { font-size: 0.88rem; margin-bottom: 0.45rem; font-weight: 600; color: var(--text-main); }
-        input {
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 0.75rem 0.9rem;
-            font-size: 0.95rem;
-        }
-
-        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12); }
-
-        .row { display: flex; gap: 0.75rem; margin-top: 1rem; }
-
-        .btn {
-            border: none;
-            border-radius: 8px;
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            font-weight: 600;
-            text-decoration: none;
-            text-align: center;
-            flex: 1;
-        }
-
-        .btn-primary { background: var(--primary); color: #fff; }
-        .btn-primary:hover { background: var(--primary-hover); }
-        .btn-secondary { background: #e2e8f0; color: #0f172a; }
-
-        ul.errorlist {
-            list-style: none;
-            background: #fee2e2;
-            color: #b91c1c;
-            border-radius: 6px;
-            padding: 0.5rem;
-            margin-bottom: 0.6rem;
-            font-size: 0.85rem;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profile — CareBridge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/carebridge.css' %}">
+  <link rel="stylesheet" href="{% static 'css/animations.css' %}">
 </head>
-<body>
-    <div class="card">
-        <h1>Edit your profile</h1>
-        <p class="sub">Update your account details for CareBridge.</p>
-
-        <form method="POST">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <div class="row">
-                <button class="btn btn-primary" type="submit">Save Changes</button>
-                <a class="btn btn-secondary" href="/">Cancel</a>
-            </div>
-        </form>
-
-        <div style="margin-top: 1rem; text-align: right;">
-            <a href="/password-change/" style="color: var(--primary); text-decoration: none; font-weight: 600;">Change password</a>
+<body class="cb-form-body">
+  <div class="form-container" style="max-width:560px;">
+    <div class="form-card">
+      <div class="form-header">
+        <i class="fa-solid fa-user-gear form-icon"></i>
+        <h2 class="form-title">Edit Profile</h2>
+        <p class="form-subtitle">Update your CareBridge account details</p>
+      </div>
+      <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div style="display:flex; gap:10px; margin-top:0.5rem;">
+          <button type="submit" class="btn-submit" style="flex:1; margin-top:0;">
+            <i class="fa-solid fa-save"></i> Save Changes
+          </button>
+          <a href="/" style="flex:1; display:flex; align-items:center; justify-content:center; padding:13px; border-radius:11px; background:var(--bg); color:var(--text-muted); border:1.5px solid var(--border); font-weight:600; font-size:0.95rem; text-decoration:none; transition:all 0.18s;"
+            onmouseover="this.style.background='var(--bg-alt)'; this.style.color='var(--text-main)'"
+            onmouseout="this.style.background='var(--bg)'; this.style.color='var(--text-muted)'">
+            Cancel
+          </a>
         </div>
+      </form>
+      <div style="text-align:right; margin-top:1rem;">
+        <a href="/password-change/" style="color:var(--primary); font-weight:600; font-size:0.88rem;">
+          <i class="fa-solid fa-lock"></i> Change Password
+        </a>
+      </div>
     </div>
+  </div>
 </body>
 </html>

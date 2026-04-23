@@ -1,256 +1,147 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - CareBridge</title>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register — CareBridge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/carebridge.css' %}">
+  <link rel="stylesheet" href="{% static 'css/animations.css' %}">
+  <style>
+    /* Wider card for register */
+    .auth-container { max-width: 480px; }
+    ul { padding-left: 1.25rem; margin-top: 0.4rem; font-size: 0.78rem; color: var(--text-muted); }
+    li { margin-bottom: 0.2rem; }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-        }
-
-        .auth-container {
-            width: 100%;
-            max-width: 460px; /* Slightly wider for register form */
-        }
-
-        .auth-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 2.5rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            border: 1px solid var(--border);
-        }
-
-        .auth-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .auth-icon {
-            font-size: 3.5rem;
-            color: var(--primary);
-            margin-bottom: 1rem;
-        }
-
-        .auth-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 0.5rem;
-        }
-        
-        .auth-subtitle {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
-        /* Django form typography styling */
-        form p {
-            margin-bottom: 1.25rem;
-            display: flex;
-            flex-direction: column;
-        }
-
-        form label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-main);
-            margin-bottom: 0.5rem;
-        }
-
-        form input, form select {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background-color: var(--card-bg);
-            outline: none;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-        }
-
-        form input:focus, form select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-        
-        .helptext {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 0.4rem;
-        }
-        
-        ul.errorlist {
-            color: #ef4444;
-            font-size: 0.8rem;
-            list-style: none;
-            margin-bottom: 1rem;
-            padding: 0;
-            background: #fee2e2;
-            padding: 0.5rem;
-            border-radius: 6px;
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 0.85rem;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-            margin-top: 1rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-submit:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-1px);
-        }
-
-        .auth-footer {
-            text-align: center;
-            margin-top: 1.5rem;
-            font-size: 0.95rem;
-            color: var(--text-muted);
-        }
-
-        .auth-footer a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.2s;
-        }
-
-        .auth-footer a:hover {
-            text-decoration: underline;
-        }
-        
-        /* For the password requirement tooltips the Django form displays */
-        ul {
-            padding-left: 1.25rem;
-            margin-top: 0.5rem;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-        
-        li {
-            margin-bottom: 0.2rem;
-        }
-    </style>
+    .role-selector {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1.2rem;
+    }
+    .role-option {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.88rem;
+      transition: all 0.18s;
+      background: var(--bg);
+      color: var(--text-muted);
+    }
+    .role-option input[type="radio"] { display: none; }
+    .role-option.selected,
+    .role-option:has(input:checked) {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary-dark);
+    }
+    .invite-field {
+      display: none;
+      margin-bottom: 1.2rem;
+    }
+  </style>
 </head>
-
-<body>
-    
-    <div class="auth-container">
-        <div class="auth-card">
-            <div class="auth-header">
-                <i class="fa-solid fa-user-plus auth-icon"></i>
-                <h2 class="auth-title">Create an Account</h2>
-                <p class="auth-subtitle">Join us to manage healthcare easily</p>
-            </div>
-
-            <form method="POST">
-                {% csrf_token %}
-                
-                {% if messages %}
-                <div class="messages" style="margin-bottom:1rem;">
-                    {% for message in messages %}
-                    <div style="padding:0.75rem; border-radius:6px; background-color:{% if message.tags == 'error' %}#fee2e2; color:#b91c1c;{% else %}#d1fae5; color:#047857;{% endif %}; margin-bottom:0.5rem; font-size:0.9rem;">
-                        {{ message }}
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                <div style="margin-bottom: 1.25rem;">
-                    <label style="display:block; margin-bottom:0.75rem; font-weight:600;">I am registering as a:</label>
-                    <div style="display:flex; gap:1.5rem; padding: 0.5rem; background: #f1f5f9; border-radius: 8px;">
-                        <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:500;">
-                            <input type="radio" name="role" value="caregiver" checked onchange="toggleInviteCode()"> Caregiver
-                        </label>
-                        <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:500;">
-                            <input type="radio" name="role" value="patient" onchange="toggleInviteCode()"> Patient
-                        </label>
-                    </div>
-                </div>
-
-                <div id="inviteCodeContainer" style="display:none; margin-bottom: 1.25rem;">
-                    <label for="invite_code" style="display:block; margin-bottom:0.5rem; font-weight:600;">6-Digit Invite Code:</label>
-                    <input type="text" name="invite_code" id="invite_code" placeholder="e.g. A7X9K2" maxlength="10" style="text-transform: uppercase;">
-                    <div class="helptext" style="margin-top:0.4rem; color:var(--text-muted); font-size:0.8rem;">Ask your Caregiver for this code to link your account.</div>
-                </div>
-
-                {{ form.as_p }}
-                
-                <button type="submit" class="btn-submit">
-                    Register <i class="fa-solid fa-paper-plane"></i>
-                </button>
-            </form>
-
-            <script>
-                function toggleInviteCode() {
-                    const role = document.querySelector('input[name="role"]:checked').value;
-                    const container = document.getElementById('inviteCodeContainer');
-                    const input = document.getElementById('invite_code');
-                    
-                    if (role === 'patient') {
-                        container.style.display = 'block';
-                        input.required = true;
-                    } else {
-                        container.style.display = 'none';
-                        input.required = false;
-                        input.value = '';
-                    }
-                }
-            </script>
-
-            <div class="auth-footer">
-                Already have an account? <a href="/login/">Login here</a>
-            </div>
-        </div>
+<body class="cb-auth-body">
+  <div class="auth-container">
+    <div style="text-align:center; margin-bottom:1.5rem;">
+      <img src="{% static 'images/carebridge-logo.svg' %}" alt="CareBridge" style="height:52px; margin:0 auto; filter: drop-shadow(0 2px 6px rgba(67,160,227,0.25));">
     </div>
+    <div class="auth-card">
+      <div class="auth-header">
+        <i class="fa-solid fa-user-plus auth-icon"></i>
+        <h2 class="auth-title">Create an Account</h2>
+        <p class="auth-subtitle">Join CareBridge to manage healthcare for your loved ones</p>
+      </div>
 
+      <form method="POST">
+        {% csrf_token %}
+
+        {% if messages %}
+        <div style="margin-bottom:1.2rem;">
+          {% for message in messages %}
+          <div style="padding:10px 14px; border-radius:10px; font-size:0.85rem; font-weight:500; margin-bottom:6px;
+               background:{% if message.tags == 'error' %}#fee2e2; color:#991b1b; border:1px solid #fecaca;{% else %}#dcfce7; color:#166534; border:1px solid #bbf7d0;{% endif %}">
+            <i class="fa-solid fa-{% if message.tags == 'error' %}circle-xmark{% else %}circle-check{% endif %}" style="margin-right:6px;"></i>
+            {{ message }}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Role selector -->
+        <div style="margin-bottom:1rem;">
+          <label style="font-size:0.82rem; font-weight:600; color:var(--text-main); display:block; margin-bottom:8px;">I am registering as a:</label>
+          <div class="role-selector">
+            <label class="role-option selected" id="roleCaregiver">
+              <input type="radio" name="role" value="caregiver" checked onchange="toggleInviteCode()">
+              <i class="fa-solid fa-user-nurse" style="font-size:1.1rem; color:var(--primary);"></i>
+              Caregiver
+            </label>
+            <label class="role-option" id="rolePatient">
+              <input type="radio" name="role" value="patient" onchange="toggleInviteCode()">
+              <i class="fa-solid fa-user-injured" style="font-size:1.1rem; color:var(--teal-hover);"></i>
+              Patient
+            </label>
+          </div>
+        </div>
+
+        <!-- Invite code (patient only) -->
+        <div class="invite-field" id="inviteCodeContainer">
+          <label style="font-size:0.82rem; font-weight:600; color:var(--text-main); display:block; margin-bottom:5px;">
+            6-Digit Invite Code
+          </label>
+          <input type="text" name="invite_code" id="invite_code"
+            placeholder="e.g. A7X9K2"
+            maxlength="10"
+            style="text-transform:uppercase; width:100%; padding:11px 14px; border-radius:10px; border:1.5px solid var(--border); background:var(--bg); font-family:inherit; font-size:0.92rem; outline:none; transition:border-color 0.18s; color:var(--text-main);"
+            onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(67,160,227,0.12)'"
+            onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'">
+          <div class="helptext" style="margin-top:5px;">Ask your Caregiver for this code to link your account.</div>
+        </div>
+
+        {{ form.as_p }}
+
+        <button type="submit" class="btn-submit">
+          <i class="fa-solid fa-paper-plane"></i> Create Account
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        Already have an account? <a href="/login/">Login here</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleInviteCode() {
+      const role = document.querySelector('input[name="role"]:checked').value;
+      const container = document.getElementById('inviteCodeContainer');
+      const input = document.getElementById('invite_code');
+      const caregiverLabel = document.getElementById('roleCaregiver');
+      const patientLabel = document.getElementById('rolePatient');
+
+      if (role === 'patient') {
+        container.style.display = 'block';
+        input.required = true;
+        caregiverLabel.classList.remove('selected');
+        patientLabel.classList.add('selected');
+      } else {
+        container.style.display = 'none';
+        input.required = false;
+        input.value = '';
+        caregiverLabel.classList.add('selected');
+        patientLabel.classList.remove('selected');
+      }
+    }
+  </script>
 </body>
 </html>
