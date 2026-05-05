@@ -69,8 +69,8 @@
         <div style="margin-bottom:1.2rem;">
           {% for message in messages %}
           <div style="padding:10px 14px; border-radius:10px; font-size:0.85rem; font-weight:500; margin-bottom:6px;
-               background:{% if message.tags == 'error' %}#fee2e2; color:#991b1b; border:1px solid #fecaca;{% else %}#dcfce7; color:#166534; border:1px solid #bbf7d0;{% endif %}">
-            <i class="fa-solid fa-{% if message.tags == 'error' %}circle-xmark{% else %}circle-check{% endif %}" style="margin-right:6px;"></i>
+               background:{% if message.tags == 'error' %}#fee2e2; color:#991b1b; border:1px solid #fecaca;{% elif message.tags == 'warning' %}#fef3c7; color:#92400e; border:1px solid #fde68a;{% else %}#dcfce7; color:#166534; border:1px solid #bbf7d0;{% endif %}">
+            <i class="fa-solid fa-{% if message.tags == 'error' %}circle-xmark{% elif message.tags == 'warning' %}triangle-exclamation{% else %}circle-check{% endif %}" style="margin-right:6px;"></i>
             {{ message }}
           </div>
           {% endfor %}
