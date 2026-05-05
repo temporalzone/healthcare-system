@@ -1,0 +1,37 @@
+<svg width="920" height="260" viewBox="0 0 920 260" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">CareBridge Logo</title>
+  <desc id="desc">Stylized heart and bridge symbol with CareBridge wordmark.</desc>
+
+  <defs>
+    <linearGradient id="bridgeGrad" x1="22" y1="18" x2="222" y2="222" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00A896"/>
+      <stop offset="1" stop-color="#0284C7"/>
+    </linearGradient>
+    <linearGradient id="pulseGrad" x1="58" y1="48" x2="196" y2="188" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22D3EE"/>
+      <stop offset="1" stop-color="#14B8A6"/>
+    </linearGradient>
+    <filter id="softGlow" x="0" y="0" width="260" height="260" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+  </defs>
+
+  <g transform="translate(10,10)">
+    <circle cx="120" cy="120" r="96" fill="url(#bridgeGrad)" opacity="0.12"/>
+    <circle cx="120" cy="120" r="92" stroke="url(#bridgeGrad)" stroke-width="4"/>
+
+    <path d="M52 136C64 95 89 72 120 72C151 72 176 95 188 136" stroke="url(#bridgeGrad)" stroke-width="14" stroke-linecap="round"/>
+    <path d="M61 146H179" stroke="#0F766E" stroke-width="8" stroke-linecap="round"/>
+
+    <path d="M45 124H78L91 101L108 148L124 116L138 136H195" stroke="url(#pulseGrad)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <circle cx="78" cy="124" r="4" fill="#0EA5A4"/>
+    <circle cx="195" cy="136" r="4" fill="#0EA5A4"/>
+  </g>
+
+  <g transform="translate(270,48)">
+    <text x="0" y="95" font-family="Poppins, Segoe UI, Arial, sans-serif" font-size="88" font-weight="700" fill="#0F172A" letter-spacing="1.2">Care</text>
+    <text x="220" y="95" font-family="Poppins, Segoe UI, Arial, sans-serif" font-size="88" font-weight="700" fill="#0284C7" letter-spacing="1.2">Bridge</text>
+    <text x="4" y="146" font-family="Manrope, Segoe UI, Arial, sans-serif" font-size="26" font-weight="500" fill="#475569" letter-spacing="1.4">Connected Care, Anytime</text>
+  </g>
+</svg>

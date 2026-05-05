@@ -54,6 +54,7 @@ def _generate_otp():
 
 def _send_registration_otp(user):
     otp_code = _generate_otp()
+    # Always save the OTP record FIRST so it persists even if email delivery fails
     EmailOTP.objects.update_or_create(
         user=user,
         defaults={
@@ -70,7 +71,7 @@ def _send_registration_otp(user):
     send_mail(
         'Verify your CareBridge account',
         f'Your OTP is {otp_code}. It will expire in 10 minutes.',
-        settings.EMAIL_HOST_USER,
+        settings.EMAIL_HOST_USER or 'noreply@carebridge.app',
         [user.email],
         fail_silently=False,
         connection=connection,
@@ -226,13 +227,22 @@ def register(request):
                 _send_registration_otp(user)
                 _log_audit(request, 'otp_sent', 'User', user.id, 'Registration OTP sent')
             except Exception as exc:
-                user.delete()
-                request.session.pop('pending_user_id', None)
-                request.session.pop('pending_role', None)
-                request.session.pop('pending_invite_code', None)
-                print(f"OTP send failed during register for {posted_email}: {exc}")
-                messages.error(request, 'Could not send OTP email. Please verify your email configuration and try again.')
-                return render(request, 'register.html', {'form': form})
+                # OTP record is already saved — keep the user and proceed to verification
+                print(f"OTP email delivery failed for {posted_email}: {exc}")
+                _log_audit(request, 'otp_email_failed', 'User', user.id, f'Email delivery error: {exc}')
+                if settings.DEBUG:
+                    # In development, show the OTP code in the message when email isn't configured
+                    otp_record = EmailOTP.objects.filter(user=user).first()
+                    otp_hint = f' (Dev mode — your OTP is: {otp_record.code})' if otp_record else ''
+                    messages.warning(
+                        request,
+                        f'Email delivery failed — check your server email configuration.{otp_hint}'
+                    )
+                else:
+                    messages.warning(
+                        request,
+                        'We had trouble sending your OTP email. Please check your inbox or use the resend option on the next screen.'
+                    )
 
             messages.success(request, f"We sent an OTP to {user.email}. Enter it to verify your account.")
             return redirect('verify_email')
