@@ -142,20 +142,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
-
 # --- EMAIL CONFIGURATION FOR RENDER ---
-# Render completely blocks outgoing ports 25, 465, and 587.
-# We MUST use port 2525 for SendGrid to bypass the firewall.
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.sendgrid.net')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', '2525'))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'apikey')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '') # Must be a VALID SendGrid API Key
+# Render completely blocks outgoing SMTP ports (25, 465, 587).
+# To bypass this, we use the SendGrid Web API via django-sendgrid-v5 (HTTPS port 443).
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', '') # Must be your verified SendGrid sender email
-EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '10'))
+SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 
-if EMAIL_HOST_PASSWORD:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+if SENDGRID_API_KEY:
+    EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
