@@ -160,7 +160,8 @@ else:
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
+# Standard SMTP backend works perfectly with SendGrid
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 SENDGRID_API_KEY = "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"
 SENDGRID_SANDBOX_MODE_IN_DEBUG = False  # Set to False in production
 
