@@ -13,7 +13,11 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render, redirect
 from django.core.mail import get_connection, send_mail
+import threading
 from django.utils import timezone
+
+def _send_mail_async(*args, **kwargs):
+    threading.Thread(target=send_mail, args=args, kwargs=kwargs).start()
 
 from .forms import (
     AppointmentForm,
@@ -99,7 +103,7 @@ def check_appointment_reminders(request):
 
     for app in appointments:
         if app.date == now.date() and app.time.hour == now.hour and app.time.minute == now.minute:
-            send_mail(
+            _send_mail_async(
                 '📅 Appointment Reminder',
                 f'Appointment with Dr. {app.doctor_name} for {app.parent.name} at {app.time}',
                 settings.DEFAULT_FROM_EMAIL,
@@ -135,7 +139,7 @@ def check_missed_medicines():
     for log in logs:
         med = log.medicine
         if med.time < current_time:   # ⏰ time passed
-            send_mail(
+            _send_mail_async(
                 '⚠️ Missed Medicine Alert',
                 f'You missed {med.name} for {med.parent.name}',
                 settings.DEFAULT_FROM_EMAIL,   # sender
@@ -168,7 +172,7 @@ def check_medicine_reminders():
     for med in medicines:
         # check if time matches (minute-level)
         if med.time.hour == now.hour and med.time.minute == now.minute:
-            send_mail(
+            _send_mail_async(
                 '💊 Medicine Reminder',
                 f'Time to take {med.name} for {med.parent.name}',
                 settings.DEFAULT_FROM_EMAIL,
@@ -177,7 +181,7 @@ def check_medicine_reminders():
             )
 @login_required
 def emergency_alert(request):
-    send_mail(
+    _send_mail_async(
         '🚨 Emergency Alert',
         'Your parent may need immediate assistance!',
         settings.DEFAULT_FROM_EMAIL,
