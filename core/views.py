@@ -71,14 +71,12 @@ def _send_registration_otp(user):
         },
     )
 
-    connection = get_connection(timeout=getattr(settings, 'EMAIL_TIMEOUT', 10))
-    send_mail(
+    _send_mail_async(
         'Verify your CareBridge account',
         f'Your OTP is {otp_code}. It will expire in 10 minutes.',
         settings.DEFAULT_FROM_EMAIL,
         [user.email],
-        fail_silently=False,
-        connection=connection,
+        fail_silently=True,
     )
 
 
@@ -231,24 +229,11 @@ def register(request):
                 _send_registration_otp(user)
                 _log_audit(request, 'otp_sent', 'User', user.id, 'Registration OTP sent')
             except Exception as exc:
-                # OTP record is already saved — keep the user and proceed to verification
-                print(f"OTP email delivery failed for {posted_email}: {exc}")
-                _log_audit(request, 'otp_email_failed', 'User', user.id, f'Email delivery error: {exc}')
-                if settings.DEBUG:
-                    # In development, show the OTP code in the message when email isn't configured
-                    otp_record = EmailOTP.objects.filter(user=user).first()
-                    otp_hint = f' (Dev mode — your OTP is: {otp_record.code})' if otp_record else ''
-                    messages.warning(
-                        request,
-                        f'Email delivery failed — check your server email configuration.{otp_hint}'
-                    )
-                else:
-                    messages.warning(
-                        request,
-                        'We had trouble sending your OTP email. Please check your inbox or use the resend option on the next screen.'
-                    )
-
-            messages.success(request, f"We sent an OTP to {user.email}. Enter it to verify your account.")
+                print(f"OTP dispatch error for {posted_email}: {exc}")
+            
+            otp_record = EmailOTP.objects.filter(user=user).first()
+            dev_hint = f" (Dev mode OTP: {otp_record.code})" if settings.DEBUG and otp_record else ""
+            messages.success(request, f"We sent an OTP to {user.email}. Enter it to verify your account.{dev_hint}")
             return redirect('verify_email')
     else:
         form = RegisterForm()
@@ -283,7 +268,9 @@ def verify_email(request):
             try:
                 _send_registration_otp(user)
                 _log_audit(request, 'otp_resent', 'User', user.id, 'Registration OTP resent')
-                messages.success(request, f'A new OTP was sent to {user.email}.')
+                otp_record.refresh_from_db()
+                dev_hint = f" (Dev mode OTP: {otp_record.code})" if settings.DEBUG else ""
+                messages.success(request, f'A new OTP was sent to {user.email}.{dev_hint}')
                 return redirect('verify_email')
             except Exception as exc:
                 print(f"OTP resend failed for {user.email}: {exc}")
