@@ -58,7 +58,7 @@ def _generate_otp():
 
 def _send_registration_otp(user):
     otp_code = _generate_otp()
-    # Always save the OTP record FIRST so it persists even if email delivery fails
+    # Save the OTP for the user
     EmailOTP.objects.update_or_create(
         user=user,
         defaults={
@@ -72,18 +72,20 @@ def _send_registration_otp(user):
     )
 
     from django.core.mail import send_mail
+    from django.conf import settings
 
-try:
-    send_mail(
-        "Your OTP code",
-        "Here is your code: 123456",
-        "mrvarshit001@gmail.com",       # use your verified from address here
-        ["temporalzone9@gmail.com"],            # the user's email
-        fail_silently=False
-    )
-    print("OTP email sent successfully!")
-except Exception as e:
-    print("OTP email failed to send:", str(e))
+    try:
+        result = send_mail(
+            "Your OTP code",
+            f"Here is your OTP code: {otp_code}",
+            settings.DEFAULT_FROM_EMAIL,      # always use the verified sender address
+            [user.email],                     # send to the user's real email
+            fail_silently=False
+        )
+        print("OTP email sent result:", result)
+    except Exception as e:
+        print("OTP email failed to send:", str(e))
+        raise   # so you see errors in your logs and UI
 
 
 def _cleanup_stale_unverified_users(username, email):
