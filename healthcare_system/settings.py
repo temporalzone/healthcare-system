@@ -167,6 +167,6 @@ DEFAULT_FROM_EMAIL = "mrvarshit001@gmail.com"
 # Optionally, keep these for consistency (not strictly required with sendgrid_backend):
 EMAIL_HOST = "smtp.sendgrid.net"
 EMAIL_HOST_USER = "apikey"  # This string, literally 'apikey'
-EMAIL_HOST_PASSWORD = "@Mythbusters5"
+EMAIL_HOST_PASSWORD = "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"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
