@@ -71,13 +71,19 @@ def _send_registration_otp(user):
         },
     )
 
-    _send_mail_async(
-        'Verify your CareBridge account',
-        f'Your OTP is {otp_code}. It will expire in 10 minutes.',
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email],
-        fail_silently=True,
+    from django.core.mail import send_mail
+
+try:
+    send_mail(
+        "Your OTP code",
+        "Here is your code: 123456",
+        "mrvarshit001@gmail.com",       # use your verified from address here
+        ["temporalzone9@gmail.com"],            # the user's email
+        fail_silently=False
     )
+    print("OTP email sent successfully!")
+except Exception as e:
+    print("OTP email failed to send:", str(e))
 
 
 def _cleanup_stale_unverified_users(username, email):
