@@ -143,18 +143,19 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
-# FORCING GMAIL BACKEND - Bypassing broken Render environment variables
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'mrvarshit001@gmail.com'
-EMAIL_HOST_PASSWORD = 'gomujctddrbpvsec'
-DEFAULT_FROM_EMAIL = 'mrvarshit001@gmail.com'
-EMAIL_TIMEOUT = 10
+# --- EMAIL CONFIGURATION FOR RENDER ---
+# Render completely blocks outgoing ports 25, 465, and 587.
+# We MUST use port 2525 for SendGrid to bypass the firewall.
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.sendgrid.net')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '2525'))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'apikey')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '') # Must be a VALID SendGrid API Key
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', '') # Must be your verified SendGrid sender email
+EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '10'))
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-# Standard SMTP backend works perfectly with SendGrid
+if EMAIL_HOST_PASSWORD:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
