@@ -71,7 +71,7 @@ def _send_registration_otp(user):
     send_mail(
         'Verify your CareBridge account',
         f'Your OTP is {otp_code}. It will expire in 10 minutes.',
-        settings.EMAIL_HOST_USER or 'noreply@carebridge.app',
+        settings.DEFAULT_FROM_EMAIL,
         [user.email],
         fail_silently=False,
         connection=connection,
@@ -102,7 +102,7 @@ def check_appointment_reminders(request):
             send_mail(
                 '📅 Appointment Reminder',
                 f'Appointment with Dr. {app.doctor_name} for {app.parent.name} at {app.time}',
-                'your_email@gmail.com',
+                settings.DEFAULT_FROM_EMAIL,
                 ['your_real_email@gmail.com'],
                 fail_silently=False,
             )
@@ -138,7 +138,7 @@ def check_missed_medicines():
             send_mail(
                 '⚠️ Missed Medicine Alert',
                 f'You missed {med.name} for {med.parent.name}',
-                'mrvarshit001@gmail.com',   # sender
+                settings.DEFAULT_FROM_EMAIL,   # sender
                 ['mrvarshit001@gmail.com'], # receiver ✅
             )
 @login_required
@@ -171,7 +171,7 @@ def check_medicine_reminders():
             send_mail(
                 '💊 Medicine Reminder',
                 f'Time to take {med.name} for {med.parent.name}',
-                'your_email@gmail.com',
+                settings.DEFAULT_FROM_EMAIL,
                 ['your_real_email@gmail.com'],
                 fail_silently=False,
             )
@@ -180,7 +180,7 @@ def emergency_alert(request):
     send_mail(
         '🚨 Emergency Alert',
         'Your parent may need immediate assistance!',
-        'your_email@gmail.com',
+        settings.DEFAULT_FROM_EMAIL,
         ['mrvarshit001@gmail.com'],  # put your email here
         fail_silently=False,
     )
@@ -607,7 +607,7 @@ def sos_alert(request, id):
             send_mail(
                 subject,
                 message,
-                settings.EMAIL_HOST_USER, # Use the authenticated Gmail address to prevent SMTP rejection
+                settings.DEFAULT_FROM_EMAIL, # Use the verified sender address to prevent SMTP rejection
                 recipients,
                 fail_silently=False,
             )
