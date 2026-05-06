@@ -70,7 +70,7 @@ def _send_registration_otp(user):
             'locked_until': None,
         },
     )
-
+    
     from django.core.mail import send_mail
     from django.conf import settings
 
@@ -78,14 +78,14 @@ def _send_registration_otp(user):
         result = send_mail(
             "Your OTP code",
             f"Here is your OTP code: {otp_code}",
-            settings.DEFAULT_FROM_EMAIL,      # always use the verified sender address
-            [user.email],                     # send to the user's real email
+            settings.DEFAULT_FROM_EMAIL,      # use verified sender!
+            [user.email],                     # user's actual email
             fail_silently=False
         )
         print("OTP email sent result:", result)
     except Exception as e:
         print("OTP email failed to send:", str(e))
-        raise   # so you see errors in your logs and UI
+        raise   # IMPORTANT: this will cause the registration to error if email fails
 
 
 def _cleanup_stale_unverified_users(username, email):
