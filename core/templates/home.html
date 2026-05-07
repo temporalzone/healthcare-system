@@ -490,7 +490,7 @@
                 <button type="button"
                         class="btn btn-outline btn-sm ai-insight-trigger"
                         data-report-name="{{ report.name|escape }}"
-                        data-patient-name="{{ report.parent.name|escape }}"
+                        data-patient-name="{{ report.parent.name|default:'Unknown'|escape }}"
                         data-report-date="{{ report.date|escape }}"
                         data-analysis="{{ report.analysis|escape }}">
                   <i class="fa-solid fa-circle-info"></i> View details
@@ -563,7 +563,7 @@
 
     <div id="aiInsightModal" style="display:none; position:fixed; inset:0; z-index:1200;">
       <div class="ai-insight-backdrop" style="position:absolute; inset:0; background:rgba(15, 23, 42, 0.55);"></div>
-      <div role="dialog" aria-modal="true" aria-labelledby="aiInsightModalTitle"
+      <div role="dialog" aria-modal="true" aria-labelledby="aiInsightModalTitle" aria-describedby="aiInsightModalBody"
            style="position:relative; max-width:700px; margin:8vh auto 0; width:min(92%, 700px); background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:0 24px 60px rgba(2, 6, 23, 0.28); overflow:hidden;">
         <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:14px 16px; border-bottom:1px solid var(--border);">
           <div>
@@ -888,6 +888,11 @@
     const aiInsightModalMeta = document.getElementById('aiInsightModalMeta');
     const aiInsightModalBody = document.getElementById('aiInsightModalBody');
     let aiInsightPreviousBodyOverflow = '';
+    function handleAiInsightModalKeydown(e) {
+      if (e.key === 'Escape' && aiInsightModal && aiInsightModal.style.display === 'block') {
+        closeAiInsightModal();
+      }
+    }
 
     function openAiInsightModal(trigger) {
       if (!aiInsightModal || !trigger) return;
@@ -897,18 +902,20 @@
       const analysis = trigger.getAttribute('data-analysis') || '';
 
       aiInsightModalTitle.textContent = 'AI Insight — ' + reportName;
-      aiInsightModalMeta.textContent = 'Patient: ' + patientName + (reportDate ? ' • ' + reportDate : '');
+      aiInsightModalMeta.textContent = `Patient: ${patientName}${reportDate ? ' • ' + reportDate : ''}`;
       aiInsightModalBody.textContent = analysis;
 
       aiInsightPreviousBodyOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
       aiInsightModal.style.display = 'block';
+      document.addEventListener('keydown', handleAiInsightModalKeydown);
     }
 
     function closeAiInsightModal() {
       if (!aiInsightModal) return;
       aiInsightModal.style.display = 'none';
       document.body.style.overflow = aiInsightPreviousBodyOverflow;
+      document.removeEventListener('keydown', handleAiInsightModalKeydown);
     }
 
     document.querySelectorAll('.ai-insight-trigger').forEach(function(button) {
@@ -926,11 +933,6 @@
       aiInsightBackdrop.addEventListener('click', closeAiInsightModal);
     }
 
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && aiInsightModal && aiInsightModal.style.display === 'block') {
-        closeAiInsightModal();
-      }
-    });
   </script>
 
   {% else %}
