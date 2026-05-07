@@ -480,9 +480,21 @@
               </div>
               {% endif %}
               {% if report.analysis and report.analysis != 'Analysis requires a PDF file.' %}
-              <div class="ai-insight" style="grid-column:1/-1;">
-                <i class="fa-solid fa-robot"></i>
-                <span><strong>AI Insight:</strong> {{ report.analysis }}</span>
+              <div class="ai-insight" style="grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <span style="display:flex; align-items:center; gap:8px; min-width:0;">
+                  <i class="fa-solid fa-robot"></i>
+                  <span style="min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    <strong>AI Insight:</strong> {{ report.analysis }}
+                  </span>
+                </span>
+                <button type="button"
+                        class="btn btn-outline btn-sm ai-insight-trigger"
+                        data-report-name="{{ report.name|escape }}"
+                        data-patient-name="{{ report.parent.name|escape }}"
+                        data-report-date="{{ report.date|escape }}"
+                        data-analysis="{{ report.analysis|escape }}">
+                  <i class="fa-solid fa-circle-info"></i> View details
+                </button>
               </div>
               {% endif %}
             </div>
@@ -548,6 +560,28 @@
       </div>
 
     </div><!-- /dashboard-grid -->
+
+    <div id="aiInsightModal" style="display:none; position:fixed; inset:0; z-index:1200;">
+      <div class="ai-insight-backdrop" style="position:absolute; inset:0; background:rgba(15, 23, 42, 0.55);"></div>
+      <div role="dialog" aria-modal="true" aria-labelledby="aiInsightModalTitle"
+           style="position:relative; max-width:700px; margin:8vh auto 0; width:min(92%, 700px); background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:0 24px 60px rgba(2, 6, 23, 0.28); overflow:hidden;">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:14px 16px; border-bottom:1px solid var(--border);">
+          <div>
+            <h3 id="aiInsightModalTitle" style="margin:0; font-size:1rem; color:var(--text-main);">AI Insight</h3>
+            <div id="aiInsightModalMeta" style="margin-top:4px; color:var(--text-muted); font-size:0.84rem;"></div>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm ai-insight-close">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div style="padding:16px;">
+          <div id="aiInsightModalBody" style="white-space:pre-wrap; line-height:1.6; color:var(--text-main);"></div>
+        </div>
+        <div style="padding:12px 16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end;">
+          <button type="button" class="btn btn-primary btn-sm ai-insight-close">Close</button>
+        </div>
+      </div>
+    </div>
 
     <!-- ═══════════ CHARTS SCRIPT ═══════════ -->
     <script>
@@ -846,6 +880,56 @@
         toast.style.transform = 'translateY(-6px)';
         setTimeout(function() { toast.remove(); }, 500);
       }, 6000);
+    });
+
+    // AI Insight modal
+    const aiInsightModal = document.getElementById('aiInsightModal');
+    const aiInsightModalTitle = document.getElementById('aiInsightModalTitle');
+    const aiInsightModalMeta = document.getElementById('aiInsightModalMeta');
+    const aiInsightModalBody = document.getElementById('aiInsightModalBody');
+    let aiInsightPreviousBodyOverflow = '';
+
+    function openAiInsightModal(trigger) {
+      if (!aiInsightModal || !trigger) return;
+      const reportName = trigger.getAttribute('data-report-name') || 'Report';
+      const patientName = trigger.getAttribute('data-patient-name') || '';
+      const reportDate = trigger.getAttribute('data-report-date') || '';
+      const analysis = trigger.getAttribute('data-analysis') || '';
+
+      aiInsightModalTitle.textContent = 'AI Insight — ' + reportName;
+      aiInsightModalMeta.textContent = 'Patient: ' + patientName + (reportDate ? ' • ' + reportDate : '');
+      aiInsightModalBody.textContent = analysis;
+
+      aiInsightPreviousBodyOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      aiInsightModal.style.display = 'block';
+    }
+
+    function closeAiInsightModal() {
+      if (!aiInsightModal) return;
+      aiInsightModal.style.display = 'none';
+      document.body.style.overflow = aiInsightPreviousBodyOverflow;
+    }
+
+    document.querySelectorAll('.ai-insight-trigger').forEach(function(button) {
+      button.addEventListener('click', function() {
+        openAiInsightModal(button);
+      });
+    });
+
+    document.querySelectorAll('.ai-insight-close').forEach(function(button) {
+      button.addEventListener('click', closeAiInsightModal);
+    });
+
+    const aiInsightBackdrop = document.querySelector('#aiInsightModal .ai-insight-backdrop');
+    if (aiInsightBackdrop) {
+      aiInsightBackdrop.addEventListener('click', closeAiInsightModal);
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && aiInsightModal && aiInsightModal.style.display === 'block') {
+        closeAiInsightModal();
+      }
     });
   </script>
 
