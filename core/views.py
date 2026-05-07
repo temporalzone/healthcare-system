@@ -34,6 +34,11 @@ from .models import Appointment, AuditLog, EmailOTP, MedicalReport, Medicine, Me
 MAX_OTP_ATTEMPTS = 5
 OTP_LOCKOUT_MINUTES = 15
 OTP_RESEND_COOLDOWN_SECONDS = 30
+MAX_ANALYSIS_SNIPPET_LENGTH = 260
+
+
+def _has_marker_with_any_level(content, marker, levels):
+    return marker in content and any(level in content for level in levels)
 
 
 def _log_audit(request, action, entity_type, entity_id='', details=''):
@@ -500,7 +505,6 @@ def home(request):
 
 def analyze_pdf_report(file_obj):
     try:
-        max_snippet_length = 260
         reader = PyPDF2.PdfReader(file_obj)
         text_parts = []
         for page in reader.pages:
@@ -509,34 +513,32 @@ def analyze_pdf_report(file_obj):
 
         normalized_text = " ".join(text.split())
         text_lower = normalized_text.lower()
-        def has_marker_with_level(content, marker):
-            return marker in content and ('high' in content or 'elevated' in content)
 
         findings_catalog = [
             {
                 'title': 'High blood sugar markers',
-                'match': lambda t: has_marker_with_level(t, 'sugar') or has_marker_with_level(t, 'glucose'),
+                'match': lambda t: _has_marker_with_any_level(t, 'sugar', ['high', 'elevated']) or _has_marker_with_any_level(t, 'glucose', ['high', 'elevated']),
                 'why': 'Persistently elevated sugar markers can strain blood vessels and organs over time.',
                 'next': 'Track fasting/post-meal values and keep a dated symptom + diet log to discuss with a clinician.',
                 'follow_up': 'Consider HbA1c, fasting glucose, and post-prandial glucose follow-up as advised by a clinician.',
             },
             {
                 'title': 'Low hemoglobin markers',
-                'match': lambda t: 'hemoglobin' in t and ('low' in t or 'decreased' in t or 'below' in t),
+                'match': lambda t: _has_marker_with_any_level(t, 'hemoglobin', ['low', 'decreased', 'below']),
                 'why': 'Low hemoglobin may reduce oxygen delivery and can correlate with fatigue or weakness.',
                 'next': 'Monitor fatigue, dizziness, breathlessness, and share trend history with your care team.',
                 'follow_up': 'Discuss CBC trend review and iron/B12/folate evaluation guidance with a clinician.',
             },
             {
                 'title': 'High blood pressure markers',
-                'match': lambda t: has_marker_with_level(t, 'pressure') or has_marker_with_level(t, 'blood pressure'),
+                'match': lambda t: _has_marker_with_any_level(t, 'pressure', ['high', 'elevated']) or _has_marker_with_any_level(t, 'blood pressure', ['high', 'elevated']),
                 'why': 'Higher pressure patterns may increase cardiovascular and kidney workload.',
                 'next': 'Record home BP readings at consistent times and note headache/chest discomfort/red-flag symptoms.',
                 'follow_up': 'Review ambulatory/home BP trends and kidney-heart risk screening plans with a clinician.',
             },
             {
                 'title': 'High cholesterol markers',
-                'match': lambda t: has_marker_with_level(t, 'cholesterol'),
+                'match': lambda t: _has_marker_with_any_level(t, 'cholesterol', ['high', 'elevated']),
                 'why': 'Elevated cholesterol can contribute to long-term plaque buildup risk.',
                 'next': 'Track diet/activity patterns and bring prior lipid reports for trend-based review.',
                 'follow_up': 'Discuss lipid profile repeat intervals and cardiovascular risk review with a clinician.',
@@ -544,7 +546,7 @@ def analyze_pdf_report(file_obj):
         ]
 
         matched_findings = [item for item in findings_catalog if item['match'](text_lower)]
-        snippet = normalized_text[:max_snippet_length] + ('...' if len(normalized_text) > max_snippet_length else '')
+        snippet = normalized_text[:MAX_ANALYSIS_SNIPPET_LENGTH] + ('...' if len(normalized_text) > MAX_ANALYSIS_SNIPPET_LENGTH else '')
         summary_line = (
             f"Summary / Key findings: Parsed {len(reader.pages)} page(s). "
             f"{'Potential concern markers detected.' if matched_findings else 'No explicit high-risk marker terms were detected.'}"
