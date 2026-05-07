@@ -23,6 +23,104 @@
   <link rel="stylesheet" href="{% static 'css/carebridge.css' %}">
   <!-- Animations -->
   <link rel="stylesheet" href="{% static 'css/animations.css' %}">
+  <style>
+    .ai-insight-preview {
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+      font-size: 0.9rem;
+      color: var(--text-main);
+    }
+    #aiInsightModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      padding: 4vh 14px;
+    }
+    #aiInsightModal .ai-insight-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.72);
+      backdrop-filter: blur(2px);
+    }
+    #aiInsightModal .ai-insight-dialog {
+      position: relative;
+      width: min(94%, 760px);
+      max-height: 92vh;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #dbe4f0;
+      border-radius: 18px;
+      box-shadow: 0 30px 80px rgba(2, 6, 23, 0.45);
+      display: flex;
+      flex-direction: column;
+    }
+    #aiInsightModal .ai-insight-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid #e2e8f0;
+      background: linear-gradient(135deg, #f8fbff, #eef6ff);
+    }
+    #aiInsightModal .ai-insight-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    #aiInsightModal .ai-insight-title-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #1e40af;
+      background: #dbeafe;
+      flex: 0 0 auto;
+    }
+    #aiInsightModal .ai-insight-title {
+      margin: 0;
+      font-size: 1.1rem;
+      color: #0f172a;
+      line-height: 1.25;
+    }
+    #aiInsightModal .ai-insight-meta {
+      margin-top: 4px;
+      color: #475569;
+      font-size: 0.88rem;
+    }
+    #aiInsightModal .ai-insight-close-btn {
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+      background: #ffffff;
+      min-width: 34px;
+      height: 34px;
+      padding: 0 10px;
+    }
+    #aiInsightModal .ai-insight-content {
+      padding: 18px;
+      overflow: auto;
+    }
+    #aiInsightModal .ai-insight-body {
+      white-space: pre-wrap;
+      line-height: 1.7;
+      color: #111827;
+      font-size: 0.96rem;
+    }
+    #aiInsightModal .ai-insight-footer {
+      padding: 12px 18px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: flex-end;
+      background: #f8fafc;
+    }
+  </style>
 </head>
 
 <body class="cb-app">
@@ -483,8 +581,8 @@
               <div class="ai-insight" style="grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:10px;">
                 <span style="display:flex; align-items:center; gap:8px; min-width:0;">
                   <i class="fa-solid fa-robot"></i>
-                  <span style="min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                    <strong>AI Insight:</strong> {{ report.analysis }}
+                  <span class="ai-insight-preview">
+                    <strong>AI Insight:</strong> {{ report.analysis|truncatechars:120 }}
                   </span>
                 </span>
                 <button type="button"
@@ -561,23 +659,25 @@
 
     </div><!-- /dashboard-grid -->
 
-    <div id="aiInsightModal" style="display:none; position:fixed; inset:0; z-index:1200;">
-      <div class="ai-insight-backdrop" style="position:absolute; inset:0; background:rgba(15, 23, 42, 0.55);"></div>
-      <div role="dialog" aria-modal="true" aria-labelledby="aiInsightModalTitle" aria-describedby="aiInsightModalBody"
-           style="position:relative; max-width:700px; margin:8vh auto 0; width:min(92%, 700px); background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:0 24px 60px rgba(2, 6, 23, 0.28); overflow:hidden;">
-        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:14px 16px; border-bottom:1px solid var(--border);">
-          <div>
-            <h3 id="aiInsightModalTitle" style="margin:0; font-size:1rem; color:var(--text-main);">AI Insight</h3>
-            <div id="aiInsightModalMeta" style="margin-top:4px; color:var(--text-muted); font-size:0.84rem;"></div>
+    <div id="aiInsightModal">
+      <div class="ai-insight-backdrop"></div>
+      <div class="ai-insight-dialog" role="dialog" aria-modal="true" aria-labelledby="aiInsightModalTitle" aria-describedby="aiInsightModalBody">
+        <div class="ai-insight-header">
+          <div class="ai-insight-title-wrap">
+            <span class="ai-insight-title-icon"><i class="fa-solid fa-stethoscope"></i></span>
+            <div>
+              <h3 id="aiInsightModalTitle" class="ai-insight-title">AI Insight</h3>
+              <div id="aiInsightModalMeta" class="ai-insight-meta"></div>
+            </div>
           </div>
-          <button type="button" class="btn btn-outline btn-sm ai-insight-close">
+          <button type="button" class="btn btn-outline btn-sm ai-insight-close ai-insight-close-btn" aria-label="Close AI insight details">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
-        <div style="padding:16px;">
-          <div id="aiInsightModalBody" style="white-space:pre-wrap; line-height:1.6; color:var(--text-main);"></div>
+        <div class="ai-insight-content">
+          <div id="aiInsightModalBody" class="ai-insight-body"></div>
         </div>
-        <div style="padding:12px 16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end;">
+        <div class="ai-insight-footer">
           <button type="button" class="btn btn-primary btn-sm ai-insight-close">Close</button>
         </div>
       </div>

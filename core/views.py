@@ -34,6 +34,11 @@ from .models import Appointment, AuditLog, EmailOTP, MedicalReport, Medicine, Me
 MAX_OTP_ATTEMPTS = 5
 OTP_LOCKOUT_MINUTES = 15
 OTP_RESEND_COOLDOWN_SECONDS = 30
+MAX_ANALYSIS_SNIPPET_LENGTH = 260
+
+
+def _has_marker_with_any_level(content, marker, levels):
+    return marker in content and any(level in content for level in levels)
 
 
 def _log_audit(request, action, entity_type, entity_id='', details=''):
@@ -501,27 +506,97 @@ def home(request):
 def analyze_pdf_report(file_obj):
     try:
         reader = PyPDF2.PdfReader(file_obj)
-        text = ""
+        text_parts = []
         for page in reader.pages:
-            text += page.extract_text()
-        
-        text = text.lower()
-        warnings = []
-        
-        if 'hemoglobin' in text and 'low' in text:
-            warnings.append('Hemoglobin low ⚠️')
-        if 'sugar' in text and 'high' in text:
-            warnings.append('Sugar high ⚠️')
-        if 'glucose' in text and 'high' in text:
-            warnings.append('Glucose high ⚠️')
-        if 'pressure' in text and 'high' in text:
-            warnings.append('Blood Pressure high ⚠️')
-        if 'cholesterol' in text and 'high' in text:
-            warnings.append('Cholesterol high ⚠️')
+            text_parts.append((page.extract_text() or "") + "\n")
+        text = "".join(text_parts)
 
-        if warnings:
-            return " | ".join(warnings)
-        return "No critical anomalies found."
+        normalized_text = " ".join(text.split())
+        text_lower = normalized_text.lower()
+
+        findings_catalog = [
+            {
+                'title': 'High blood sugar markers',
+                'match': lambda t: _has_marker_with_any_level(t, 'sugar', ['high', 'elevated']) or _has_marker_with_any_level(t, 'glucose', ['high', 'elevated']),
+                'why': 'Persistently elevated sugar markers can strain blood vessels and organs over time.',
+                'next': 'Track fasting/post-meal values and keep a dated symptom + diet log to discuss with a clinician.',
+                'follow_up': 'Consider HbA1c, fasting glucose, and post-prandial glucose follow-up as advised by a clinician.',
+            },
+            {
+                'title': 'Low hemoglobin markers',
+                'match': lambda t: _has_marker_with_any_level(t, 'hemoglobin', ['low', 'decreased', 'below']),
+                'why': 'Low hemoglobin may reduce oxygen delivery and can correlate with fatigue or weakness.',
+                'next': 'Monitor fatigue, dizziness, breathlessness, and share trend history with your care team.',
+                'follow_up': 'Discuss CBC trend review and iron/B12/folate evaluation guidance with a clinician.',
+            },
+            {
+                'title': 'High blood pressure markers',
+                'match': lambda t: _has_marker_with_any_level(t, 'pressure', ['high', 'elevated']) or _has_marker_with_any_level(t, 'blood pressure', ['high', 'elevated']),
+                'why': 'Higher pressure patterns may increase cardiovascular and kidney workload.',
+                'next': 'Record home BP readings at consistent times and note headache/chest discomfort/red-flag symptoms.',
+                'follow_up': 'Review ambulatory/home BP trends and kidney-heart risk screening plans with a clinician.',
+            },
+            {
+                'title': 'High cholesterol markers',
+                'match': lambda t: _has_marker_with_any_level(t, 'cholesterol', ['high', 'elevated']),
+                'why': 'Elevated cholesterol can contribute to long-term plaque buildup risk.',
+                'next': 'Track diet/activity patterns and bring prior lipid reports for trend-based review.',
+                'follow_up': 'Discuss lipid profile repeat intervals and cardiovascular risk review with a clinician.',
+            },
+        ]
+
+        matched_findings = [item for item in findings_catalog if item['match'](text_lower)]
+        snippet = normalized_text[:MAX_ANALYSIS_SNIPPET_LENGTH] + ('...' if len(normalized_text) > MAX_ANALYSIS_SNIPPET_LENGTH else '')
+        summary_line = (
+            f"Summary / Key findings: Parsed {len(reader.pages)} page(s). "
+            f"{'Potential concern markers detected.' if matched_findings else 'No explicit high-risk marker terms were detected.'}"
+        )
+
+        lines = [
+            summary_line,
+            f"- Text snapshot: {snippet or 'No extractable text was found in the PDF.'}",
+            "",
+            "Detected flags:",
+        ]
+
+        if matched_findings:
+            for item in matched_findings:
+                lines.append(f"- {item['title']} ⚠️")
+        else:
+            lines.append("- No specific high/low marker combinations were detected in the extracted text.")
+
+        lines.extend([
+            "",
+            "Why it matters (brief):",
+        ])
+        if matched_findings:
+            for item in matched_findings:
+                lines.append(f"- {item['why']}")
+        else:
+            lines.append("- Lab values can still require context; reference ranges and history matter for interpretation.")
+
+        lines.extend([
+            "",
+            "Suggested next steps (non-diagnostic):",
+        ])
+        if matched_findings:
+            for item in matched_findings:
+                lines.append(f"- {item['next']}")
+        else:
+            lines.append("- Continue routine monitoring and keep report copies organized for trend comparison.")
+        lines.append("- Safety note: This is an automated, non-diagnostic summary and does not replace medical advice.")
+
+        lines.extend([
+            "",
+            "Recommended follow-up tests / consult guidance:",
+        ])
+        if matched_findings:
+            for item in matched_findings:
+                lines.append(f"- {item['follow_up']}")
+        else:
+            lines.append("- Consider periodic physician review, especially if symptoms are present or values change over time.")
+
+        return "\n".join(lines)
     except Exception as e:
         return "Could not auto-analyze."
 
