@@ -500,6 +500,7 @@ def home(request):
 
 def analyze_pdf_report(file_obj):
     try:
+        max_snippet_length = 260
         reader = PyPDF2.PdfReader(file_obj)
         text_parts = []
         for page in reader.pages:
@@ -508,11 +509,13 @@ def analyze_pdf_report(file_obj):
 
         normalized_text = " ".join(text.split())
         text_lower = normalized_text.lower()
+        def has_marker_with_level(content, marker):
+            return marker in content and ('high' in content or 'elevated' in content)
 
         findings_catalog = [
             {
                 'title': 'High blood sugar markers',
-                'match': lambda t: ('sugar' in t and ('high' in t or 'elevated' in t)) or ('glucose' in t and ('high' in t or 'elevated' in t)),
+                'match': lambda t: has_marker_with_level(t, 'sugar') or has_marker_with_level(t, 'glucose'),
                 'why': 'Persistently elevated sugar markers can strain blood vessels and organs over time.',
                 'next': 'Track fasting/post-meal values and keep a dated symptom + diet log to discuss with a clinician.',
                 'follow_up': 'Consider HbA1c, fasting glucose, and post-prandial glucose follow-up as advised by a clinician.',
@@ -526,14 +529,14 @@ def analyze_pdf_report(file_obj):
             },
             {
                 'title': 'High blood pressure markers',
-                'match': lambda t: ('pressure' in t or 'blood pressure' in t) and ('high' in t or 'elevated' in t),
+                'match': lambda t: has_marker_with_level(t, 'pressure') or has_marker_with_level(t, 'blood pressure'),
                 'why': 'Higher pressure patterns may increase cardiovascular and kidney workload.',
                 'next': 'Record home BP readings at consistent times and note headache/chest discomfort/red-flag symptoms.',
                 'follow_up': 'Review ambulatory/home BP trends and kidney-heart risk screening plans with a clinician.',
             },
             {
                 'title': 'High cholesterol markers',
-                'match': lambda t: 'cholesterol' in t and ('high' in t or 'elevated' in t),
+                'match': lambda t: has_marker_with_level(t, 'cholesterol'),
                 'why': 'Elevated cholesterol can contribute to long-term plaque buildup risk.',
                 'next': 'Track diet/activity patterns and bring prior lipid reports for trend-based review.',
                 'follow_up': 'Discuss lipid profile repeat intervals and cardiovascular risk review with a clinician.',
@@ -541,7 +544,7 @@ def analyze_pdf_report(file_obj):
         ]
 
         matched_findings = [item for item in findings_catalog if item['match'](text_lower)]
-        snippet = normalized_text[:260] + ('...' if len(normalized_text) > 260 else '')
+        snippet = normalized_text[:max_snippet_length] + ('...' if len(normalized_text) > max_snippet_length else '')
         summary_line = (
             f"Summary / Key findings: Parsed {len(reader.pages)} page(s). "
             f"{'Potential concern markers detected.' if matched_findings else 'No explicit high-risk marker terms were detected.'}"
