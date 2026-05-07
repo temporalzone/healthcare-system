@@ -501,9 +501,10 @@ def home(request):
 def analyze_pdf_report(file_obj):
     try:
         reader = PyPDF2.PdfReader(file_obj)
-        text = ""
+        text_parts = []
         for page in reader.pages:
-            text += (page.extract_text() or "") + "\n"
+            text_parts.append((page.extract_text() or "") + "\n")
+        text = "".join(text_parts)
 
         normalized_text = " ".join(text.split())
         text_lower = normalized_text.lower()

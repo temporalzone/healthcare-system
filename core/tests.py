@@ -1,5 +1,5 @@
 from django.test import TestCase
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from core.views import analyze_pdf_report
 
@@ -7,7 +7,8 @@ from core.views import analyze_pdf_report
 class AnalyzePdfReportTests(TestCase):
     @patch('core.views.PyPDF2.PdfReader')
     def test_generates_structured_multiline_analysis(self, mock_pdf_reader):
-        fake_page = type('Page', (), {'extract_text': lambda self: 'Glucose high. Sugar high. Cholesterol high.'})()
+        fake_page = Mock(spec=['extract_text'])
+        fake_page.extract_text.return_value = 'Glucose high. Sugar high. Cholesterol high.'
         mock_pdf_reader.return_value.pages = [fake_page]
 
         analysis = analyze_pdf_report(file_obj=object())
@@ -24,7 +25,8 @@ class AnalyzePdfReportTests(TestCase):
 
     @patch('core.views.PyPDF2.PdfReader')
     def test_returns_structured_response_when_no_flags_detected(self, mock_pdf_reader):
-        fake_page = type('Page', (), {'extract_text': lambda self: 'Routine values noted. Within reference range.'})()
+        fake_page = Mock(spec=['extract_text'])
+        fake_page.extract_text.return_value = 'Routine values noted. Within reference range.'
         mock_pdf_reader.return_value.pages = [fake_page]
 
         analysis = analyze_pdf_report(file_obj=object())
